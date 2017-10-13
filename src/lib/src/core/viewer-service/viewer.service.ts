@@ -24,7 +24,7 @@ import { Direction } from '../models/direction';
 import { Side } from '../models/side';
 import { ZoomUtils } from './zoom-utils';
 import { ViewerLayout } from '../models/viewer-layout';
-import { CalculatePagePositionFactory } from '../page-position/calculate-page-position-factory';
+import { CalculateTilePositionFactory } from '../tile-position/calculate-tile-position-factory';
 import { ViewerLayoutService } from '../viewer-layout-service/viewer-layout-service';
 import { PinchStatus } from '../models/pinchStatus';
 import { MimeViewerConfig } from '../mime-viewer-config';
@@ -564,7 +564,7 @@ export class ViewerService {
   createOverlays(): void {
     this.overlays = [];
     const tileRects: Rect[] = [];
-    const calculatePagePositionStrategy = CalculatePagePositionFactory.create(
+    const calculateTilePositionStrategy = CalculateTilePositionFactory.create(
       this.viewerLayout,
       this.isManifestPaged
     );
@@ -574,10 +574,10 @@ export class ViewerService {
 
     this.tileSources.forEach((tile, i) => {
 
-      const position = calculatePagePositionStrategy.calculatePagePosition({
-        pageIndex: i,
-        pageSource: tile,
-        previousPagePosition: tileRects[i - 1]
+      const position = calculateTilePositionStrategy.calculateTilePosition({
+        tileIndex: i,
+        tileSource: tile,
+        previousTilePosition: tileRects[i - 1]
       });
 
       tileRects.push(position);
