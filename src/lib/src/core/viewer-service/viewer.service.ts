@@ -210,24 +210,29 @@ export class ViewerService {
   }
 
 
-  setUpViewer(manifest: Manifest) {
+  setUpViewer(manifest: Manifest, initialTile: number) {
     if (!manifest || !manifest.tileSource) {
       return;
     }
 
     this.tileSources = manifest.tileSource;
+    if (!initialTile || initialTile < 0) {
+      initialTile = 0
+    } else if (initialTile > this.tileSources.length) {
+      initialTile = this.tileSources.length - 1;
+    }
+    
     this.zone.runOutsideAngular(() => {
       this.manifest = manifest;
       this.isManifestPaged = ManifestUtils.isManifestPaged(this.manifest);
       this.options = new Options();
       this.viewer = new OpenSeadragon.Viewer(Object.assign({}, this.options));
-      this.pageService.reset();
       this.pageMask = new PageMask(this.viewer);
     });
 
     this.addToWindow();
     this.setupOverlays();
-    this.createOverlays();
+    this.createOverlays(initialTile);
     this.addEvents();
     this.addSubscriptions();
   }
@@ -261,7 +266,7 @@ export class ViewerService {
     this.subscriptions.push(
       this.onOsdReadyChange.subscribe((state: boolean) => {
         if (state) {
-          this.initialPageLoaded();
+          this.home();
           this.currentCenter.next(this.viewer.viewport.getCenter(true));
         }
       })
@@ -273,8 +278,7 @@ export class ViewerService {
           const savedTile = this.pageService.currentTile;
           this.viewerLayout = state;
           this.destroy();
-          this.setUpViewer(this.manifest);
-          this.goToPage(this.pageService.findPageByTileIndex(savedTile), false);
+          this.setUpViewer(this.manifest, savedTile);
         }
       })
     );
@@ -302,7 +306,6 @@ export class ViewerService {
       subscription.unsubscribe();
     });
     this.overlays = null;
-    this.pageService.reset();
   }
 
   addEvents(): void {
@@ -561,7 +564,7 @@ export class ViewerService {
    * Iterates tilesources and adds them to viewer
    * Creates svg clickable overlays for each tile
    */
-  createOverlays(): void {
+  createOverlays(initialTile: number): void {
     this.overlays = [];
     const tileRects: Rect[] = [];
     const calculateTilePositionStrategy = CalculateTilePositionFactory.create(
@@ -588,7 +591,10 @@ export class ViewerService {
           tileSource: tile,
           height: position.height,
           x: position.x,
-          y: position.y
+          y: position.y,
+          success: i === initialTile ? (e: any) => {
+            e.item.addOnceHandler('fully-loaded-change', () => { this.initialPageLoaded(); });
+          } : ''
         });
       });
 
@@ -618,14 +624,13 @@ export class ViewerService {
       this.overlays.push(currentOverlayNode);
     });
 
-    this.pageService.addPages(tileRects, this.viewerLayout, this.isManifestPaged);
+    this.pageService.addPages(tileRects, this.viewerLayout, this.isManifestPaged, initialTile);
   }
 
   /**
    * Sets viewer size and opacity once the first page has fully loaded
    */
   initialPageLoaded = (): void => {
-    this.home();
     this.pageMask.initialise(this.pageService.getCurrentPageRect(), this.modeService.mode !== ViewerMode.DASHBOARD);
     d3.select(this.viewer.container.parentNode).transition().duration(ViewerOptions.transitions.OSDAnimationTime).style('opacity', '1');
   }

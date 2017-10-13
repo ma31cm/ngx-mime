@@ -20,14 +20,11 @@ export class PageService {
 
   constructor() {}
 
-  reset() {
-    this._currentPage.next(0);
+  addPages(tileRects: Rect[], viewerLayout: ViewerLayout, paged: boolean, initialTile: number) {
     this.pageRects = new PageRects();
     this.tileIndicesPerPage = [];
-  }
-
-  addPages(tileRects: Rect[], viewerLayout: ViewerLayout, paged: boolean) {
     this.tileRects = tileRects;
+
     if (viewerLayout === ViewerLayout.ONE_PAGE || !paged) {
       this.initialiseWithOneTilePerPage();
     } else {
@@ -35,6 +32,7 @@ export class PageService {
     }
     this._numberOfPages = this.pageRects.length();
     this._currentNumberOfPages.next(this._numberOfPages);
+    this._currentPage.next(this.findPageByTileIndex(initialTile));
   }
 
   set currentPage(currentPage: number) {
@@ -55,11 +53,6 @@ export class PageService {
   get onNumberOfPagesChange(): Observable<number> {
     return this._currentNumberOfPages.asObservable().distinctUntilChanged();
   }
-
-  /*set numberOfPages(numberOfPages: number) {
-    this._currentNumberOfPages.next(numberOfPages);
-    this._numberOfPages = numberOfPages;
-  }*/
 
   get numberOfPages(): number {
     return this._numberOfPages;

@@ -94,7 +94,7 @@ export class ViewerComponent implements OnInit, OnDestroy, OnChanges {
             this.initialize();
             this.currentManifest = manifest;
             this.changeDetectorRef.detectChanges();
-            this.viewerService.setUpViewer(manifest);
+            this.viewerService.setUpViewer(manifest, this.canvasIndex);
             if (this.config.attributionDialogEnabled && manifest.attribution) {
               this.attributionDialogService.open(this.config.attributionDialogHideTimeout);
             }
@@ -104,14 +104,6 @@ export class ViewerComponent implements OnInit, OnDestroy, OnChanges {
             }
           }
         })
-    );
-
-    this.subscriptions.push(
-      this.viewerService.onOsdReadyChange.subscribe((state: boolean) => {
-        if (state && this.canvasIndex) {
-          this.viewerService.goToTile(this.canvasIndex, false);
-        }
-      })
     );
 
     this.subscriptions.push(
