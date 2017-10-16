@@ -13,6 +13,7 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
+import { ObservableMedia } from '@angular/flex-layout';
 import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
 
@@ -65,6 +66,7 @@ export class ViewerComponent implements OnInit, OnDestroy, OnChanges {
 
   constructor(
     public intl: MimeViewerIntl,
+    public media: ObservableMedia,
     private el: ElementRef,
     private iiifManifestService: IiifManifestService,
     private contentsDialogService: ContentsDialogService,
@@ -75,7 +77,7 @@ export class ViewerComponent implements OnInit, OnDestroy, OnChanges {
     private changeDetectorRef: ChangeDetectorRef,
     private modeService: ModeService,
     private iiifContentSearchService: IiifContentSearchService,
-    private viewerLayoutService: ViewerLayoutService
+    private viewerLayoutService: ViewerLayoutService,
   ) {
     contentsDialogService.el = el;
     attributionDialogService.el = el;
@@ -89,7 +91,7 @@ export class ViewerComponent implements OnInit, OnDestroy, OnChanges {
       this.iiifManifestService.currentManifest
         .subscribe((manifest: Manifest) => {
           if (manifest) {
-            this.viewerLayoutService.init(manifest);
+            this.viewerLayoutService.init(manifest, this.isMobile());
             this.cleanup();
             this.initialize();
             this.currentManifest = manifest;
@@ -270,6 +272,10 @@ export class ViewerComponent implements OnInit, OnDestroy, OnChanges {
 
   private resetErrorMessage(): void {
     this.errorMessage = null;
+  }
+
+  private isMobile(): boolean {
+    return this.media.isActive('lt-md');
   }
 
   setClasses() {

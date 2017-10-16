@@ -14,9 +14,9 @@ export class ViewerLayoutService {
   public viewerLayoutState = this.viewerLayoutSubject.asObservable();
   constructor() { }
 
-  init(manifest: Manifest) {
+  init(manifest: Manifest, isMobile: boolean) {
     const isPagedManifest = ManifestUtils.isManifestPaged(manifest);
-    if (isPagedManifest && this.mimeConfig.initViewerLayout === ViewerLayout.TWO_PAGE) {
+    if (isPagedManifest && this.mimeConfig.initViewerLayout === ViewerLayout.TWO_PAGE && !isMobile) {
       this.viewerLayoutSubject.next(ViewerLayout.TWO_PAGE);
     } else {
       this.viewerLayoutSubject.next(ViewerLayout.ONE_PAGE);
